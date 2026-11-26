@@ -24,7 +24,10 @@ Input for `/speckit-constitution` and `/speckit-specify`. Guiding principle: **u
 - The whole app first runs locally with Docker Compose (frontend, backend, PostgreSQL, Keycloak) before any cloud work.
 - No tests.
 
-## Infrastructure (Azure, `germanywestcentral`)
+## Infrastructure (Azure, `westeurope`)
+
+> Planned `germanywestcentral`, moved to `westeurope` on 2026-11-26: the subscription is not allowed to
+> provision PostgreSQL Flexible Server in germanywestcentral ("Provisioning is restricted in this region").
 - Private subscription of the user. Owner rights assumed – verify read-only once `az` is installed. All resources in dedicated resource groups, tagged `project=eu-cloud-alternatives`.
 - AKS: **one** node pool, 2 small nodes.
 - PostgreSQL Flexible Server, Burstable B1ms, private access via VNet integration (delegated subnet). One server, two databases (app, keycloak).

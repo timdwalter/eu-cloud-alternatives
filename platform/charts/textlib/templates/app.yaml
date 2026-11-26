@@ -1,0 +1,83 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: backend }
+  template:
+    metadata:
+      labels: { app: backend }
+    spec:
+      securityContext: { runAsNonRoot: true, runAsUser: 1000 } # uid of "node" in the Node image
+      containers:
+        - name: backend
+          image: {{ include "textlib.image" (list . .Values.images.backend) }}
+          ports: [{ containerPort: 8080 }]
+          env:
+            - { name: PORT, value: "8080" }
+            - { name: DB_HOST, value: {{ .Values.db.host | quote }} }
+            - { name: DB_NAME, value: {{ .Values.db.appDatabase | quote }} }
+            - { name: DB_USER, value: {{ .Values.db.user | quote }} }
+            - { name: DB_SSL, value: "true" }
+            - name: DB_PASSWORD
+              valueFrom: { secretKeyRef: { name: {{ .Values.secretName }}, key: db-password } }
+            - { name: OIDC_ISSUER, value: {{ include "textlib.issuer" . | quote }} }
+            - { name: OIDC_JWKS_URL, value: "{{ include "textlib.internalIssuer" . }}/protocol/openid-connect/certs" }
+          readinessProbe:
+            httpGet: { path: /readyz, port: 8080 }
+            periodSeconds: 10
+          livenessProbe:
+            httpGet: { path: /healthz, port: 8080 }
+            periodSeconds: 20
+          resources: {{- toYaml .Values.resources.backend | nindent 12 }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend
+spec:
+  selector: { app: backend }
+  ports: [{ port: 8080, targetPort: 8080 }]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: frontend }
+  template:
+    metadata:
+      labels: { app: frontend }
+    spec:
+      securityContext: { runAsNonRoot: true, runAsUser: 1000 } # uid of "node" in the Node image
+      containers:
+        - name: frontend
+          image: {{ include "textlib.image" (list . .Values.images.frontend) }}
+          ports: [{ containerPort: 3000 }]
+          env:
+            - { name: APP_NAME, value: {{ .Values.appName | quote }} }
+            - { name: BACKEND_URL, value: "http://backend:8080" }
+            - { name: AUTH_URL, value: "https://{{ .Values.domain }}" }
+            - { name: AUTH_KEYCLOAK_ID, value: {{ .Values.clientId | quote }} }
+            - { name: AUTH_KEYCLOAK_ISSUER, value: {{ include "textlib.issuer" . | quote }} }
+            - { name: AUTH_KEYCLOAK_INTERNAL_ISSUER, value: {{ include "textlib.internalIssuer" . | quote }} }
+            - name: AUTH_SECRET
+              valueFrom: { secretKeyRef: { name: {{ .Values.secretName }}, key: auth-secret } }
+            - name: AUTH_KEYCLOAK_SECRET
+              valueFrom: { secretKeyRef: { name: {{ .Values.secretName }}, key: client-secret } }
+          readinessProbe:
+            httpGet: { path: /, port: 3000 }
+            periodSeconds: 10
+          resources: {{- toYaml .Values.resources.frontend | nindent 12 }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend
+spec:
+  selector: { app: frontend }
+  ports: [{ port: 3000, targetPort: 3000 }]

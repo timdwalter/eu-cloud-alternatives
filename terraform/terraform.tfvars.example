@@ -1,0 +1,14 @@
+# Copy to terraform/terraform.tfvars (gitignored) and fill in.
+
+# az account show --query id -o tsv
+subscription_id = "00000000-0000-0000-0000-000000000000"
+
+# GitHub repository whose main branch may push images (owner/name)
+github_repository = "your-github-user/your-repo"
+
+# Optional overrides
+# prefix             = "textlib"
+# location           = "westeurope"
+# kubernetes_version = "1.36.5"
+# node_size          = "Standard_B2s"
+# node_count         = 2

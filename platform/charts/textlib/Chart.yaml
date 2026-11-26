@@ -1,0 +1,6 @@
+apiVersion: v2
+name: textlib
+description: Text library demo app – frontend, backend, Keycloak, Gateway and TLS. Provider-neutral.
+type: application
+version: 0.1.0
+appVersion: "0.1.0"

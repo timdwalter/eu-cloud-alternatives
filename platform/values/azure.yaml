@@ -1,0 +1,6 @@
+# Azure-specific Helm values for platform/charts/textlib. Everything else is provider-neutral.
+
+gateway:
+  serviceAnnotations:
+    # Plain TCP health probe for the Azure Load Balancer (an HTTP probe on "/" could get a 404 from Envoy)
+    service.beta.kubernetes.io/azure-load-balancer-health-probe-protocol: tcp

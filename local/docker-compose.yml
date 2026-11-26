@@ -40,7 +40,7 @@ services:
       CLIENT_SECRET: ${CLIENT_SECRET}
       APP_URL: http://localhost:3000
     volumes:
-      - ./keycloak/realm.json:/opt/keycloak/data/import/realm.json:ro
+      - ../platform/charts/textlib/files/realm.json:/opt/keycloak/data/import/realm.json:ro
     ports:
       - "8080:8080"
     depends_on:

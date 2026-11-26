@@ -1,0 +1,47 @@
+# Provider-neutral defaults. scripts/deploy.sh sets the environment values (domain, registry, db host …)
+# from platform/config.local.env and the Terraform outputs; platform/values/<provider>.yaml adds the
+# few provider-specific settings.
+
+appName: Text Library
+domain: example.com # app on the apex, Keycloak on auth.<domain>
+authSubdomain: auth
+
+realm: textlib
+clientId: textlib-web
+
+images:
+  registry: "" # e.g. myregistry.azurecr.io
+  tag: latest
+  backend: textlib-backend
+  frontend: textlib-frontend
+  keycloak: quay.io/keycloak/keycloak:26.8.2
+
+db:
+  host: ""
+  user: ""
+  appDatabase: app
+  keycloakDatabase: keycloak
+
+# Created by scripts/deploy.sh (never in Git): db-password, client-secret, auth-secret, kc-admin-password
+secretName: textlib-secrets
+keycloakAdminUser: admin
+
+tls:
+  issuer: letsencrypt-staging # switch to letsencrypt-prod once staging works
+  acmeEmail: "" # optional
+
+gateway:
+  name: textlib
+  # Provider-specific annotations for the load balancer Service (set in values/<provider>.yaml)
+  serviceAnnotations: {}
+
+resources:
+  backend:
+    requests: { cpu: 50m, memory: 96Mi }
+    limits: { memory: 256Mi }
+  frontend:
+    requests: { cpu: 50m, memory: 128Mi }
+    limits: { memory: 384Mi }
+  keycloak:
+    requests: { cpu: 250m, memory: 768Mi }
+    limits: { memory: 1280Mi }
