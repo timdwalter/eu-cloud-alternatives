@@ -30,7 +30,7 @@ Same criteria and scale as [evaluation-azure.md](evaluation-azure.md). Evidence:
 | **Network layout** | VNet + 2 subnets (one delegated to PostgreSQL) + private DNS zone + link | **One Private Network**, DB and cluster attached directly | Simpler: 4 Azure building blocks become 1 |
 | **Resource count** | 22 in Terraform, 6 more created by AKS | **11** in Terraform, LB/IP/security group by Kapsule | Less to understand and to tear down |
 | **Root module** | – | `versions.tf`, `variables.tf`, `main.tf` change, not only the module selection | Our design was less provider-neutral than intended |
-| **Onboarding** | Existing subscription; quota 0 for one VM family; PostgreSQL restricted in one region | Personal account, **activated immediately**; no quota problem so far | Clearly easier |
+| **Onboarding** | Existing subscription; quota 0 for one VM family (switched to another family in minutes); PostgreSQL restricted in one region | Personal account, **activated immediately** – but **Kapsule quota 0/0** until the payment method is validated. A Visa debit card was accepted without the verification charge, so the account silently stayed at the lowest level. DB, registry and secrets could be created, only Kubernetes was blocked. Not visible on the quotas page, not self-service; the console lets you configure a whole cluster before failing | Account creation easier, **getting to a cluster harder** – blocked for hours |
 | **CLI on Windows** | winget, MSI, ZIP | winget, Chocolatey, Scoop, binary – but the winget command is `scaleway-cli`, not `scw` as in the docs | Small stumbling block |
 | **Terraform provider** | azurerm 5: 5 schema errors from outdated knowledge | scaleway 2.92: 0 schema errors | Smoother |
 | **Cost** | ≈ 118 €/month | **≈ 90 €/month** (−24 %) | Mainly nodes (40 € vs. 63 €) and no 128-GB-disk trap |
@@ -45,7 +45,14 @@ Same criteria and scale as [evaluation-azure.md](evaluation-azure.md). Evidence:
 
 ## Issues by cause
 
-_Filled in after the deployment test._
+_Filled in after the deployment test._ Known so far:
+
+- **Provider – onboarding:** Kapsule quota 0/0 despite identity verification; payment method (debit
+  card) accepted but not validated; no indication anywhere except the error on create.
+- **Provider – console UX:** region selector per page (VPC landed in nl-ams by mistake); the cluster
+  wizard shows the price and only then the quota error.
+- **Agent:** did not check organisation quotas before the first apply (no CLI command for it); wrongly
+  claimed that a dedicated control plane is billed for 30 days when deleted early.
 
 ## Scores
 
