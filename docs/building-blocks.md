@@ -32,6 +32,9 @@ Azure figures are from the reference deployment (westeurope, list prices, 730 h/
 | – | Network diagnostics | Not needed by us. Azure creates it automatically with the first VNet in a region | Network Watcher (`NetworkWatcherRG`) | Auto (Azure) | 0 | | | |
 | | **Total** | | | | **≈ 118** | | | |
 
+> **STACKIT:** column left empty. The test was blocked at onboarding, because customer accounts are only
+> available to businesses from DACH. See [evaluation-stackit.md](evaluation-stackit.md).
+
 ## Inside the cluster (identical on every provider)
 
 | Function | Why | Implementation | Provider-specific part |
