@@ -6,7 +6,10 @@ SCW_BIN=$(command -v scw || command -v scaleway-cli || true)
 [[ -n "$SCW_BIN" ]] || { echo "Scaleway CLI not found (scw / scaleway-cli)" >&2; exit 1; }
 # Project-scoped profile used by Terraform as well
 export SCW_PROFILE="${SCW_PROFILE:-textlib-terraform}"
-REGISTRY_HOST="rg.fr-par.scw.cloud"
+# Registry host (rg.<region>.scw.cloud) = first part of the namespace endpoint
+registry_host() { local ep; ep=$(tf_output registry_login_server); echo "${ep%%/*}"; }
+# Region (e.g. nl-ams) from the registry host rg.<region>.scw.cloud
+scw_region() { local h; h=$(registry_host); h=${h#rg.}; echo "${h%%.*}"; }
 
 # Writes cluster credentials into ~/.kube/config
 get_kube_credentials() {
@@ -17,13 +20,13 @@ get_kube_credentials() {
 
 # Prints the latest version of a Secret Manager secret by name
 get_secret() {
-  "$SCW_BIN" secret version access-by-path secret-name="$1" revision=latest_enabled -o json \
+  "$SCW_BIN" secret version access-by-path secret-name="$1" revision=latest_enabled region="$(scw_region)" -o json \
     | sed -n 's/.*"data": *"\([^"]*\)".*/\1/p' | base64 -d
 }
 
 # Logs the local Docker client into the registry (manual image push)
 registry_login() {
-  "$SCW_BIN" config get secret-key | docker login "$REGISTRY_HOST" -u nologin --password-stdin
+  "$SCW_BIN" config get secret-key | docker login "$(registry_host)" -u nologin --password-stdin
 }
 
 # Kapsule has no keyless pull from a private registry: create a pull secret from a read-only key
@@ -33,7 +36,7 @@ provider_pre_deploy() {
   local key
   key=$(get_secret registry-pull-key)
   kubectl -n "$NAMESPACE" create secret docker-registry scw-registry \
-    --docker-server="$REGISTRY_HOST" --docker-username=nologin --docker-password="$key" \
+    --docker-server="$(registry_host)" --docker-username=nologin --docker-password="$key" \
     --dry-run=client -o yaml | kubectl apply -f - >/dev/null
   kubectl -n "$NAMESPACE" patch serviceaccount default \
     -p '{"imagePullSecrets":[{"name":"scw-registry"}]}' >/dev/null

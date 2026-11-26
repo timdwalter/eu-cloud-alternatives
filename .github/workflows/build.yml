@@ -27,7 +27,8 @@ jobs:
       - name: Registry login (API key, no OIDC available)
         env:
           SCW_SECRET_KEY: ${{ secrets.SCW_SECRET_KEY }}
-        run: echo "$SCW_SECRET_KEY" | docker login rg.fr-par.scw.cloud -u nologin --password-stdin
+          REGISTRY: ${{ vars.REGISTRY }}
+        run: echo "$SCW_SECRET_KEY" | docker login "${REGISTRY%%/*}" -u nologin --password-stdin
         shell: bash
 
       - name: Build and push

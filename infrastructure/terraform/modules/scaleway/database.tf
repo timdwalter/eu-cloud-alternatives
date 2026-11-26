@@ -36,3 +36,18 @@ resource "scaleway_rdb_database" "keycloak" {
   instance_id = scaleway_rdb_instance.this.id
   name        = "keycloak"
 }
+
+# Unlike Azure, the instance's admin user has no rights on databases created separately.
+resource "scaleway_rdb_privilege" "app" {
+  instance_id   = scaleway_rdb_instance.this.id
+  user_name     = scaleway_rdb_instance.this.user_name
+  database_name = scaleway_rdb_database.app.name
+  permission    = "all"
+}
+
+resource "scaleway_rdb_privilege" "keycloak" {
+  instance_id   = scaleway_rdb_instance.this.id
+  user_name     = scaleway_rdb_instance.this.user_name
+  database_name = scaleway_rdb_database.keycloak.name
+  permission    = "all"
+}

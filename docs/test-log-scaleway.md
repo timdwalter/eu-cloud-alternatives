@@ -157,3 +157,45 @@ the place to check it before applying.
   quota for it is 0, there is no self-service request, and the page does not even list Kubernetes.
   Support ticket sent (stating that providers are being evaluated). Azure was torn down meanwhile
   (see test-log-azure.md), so the domain is offline until Scaleway is up.
+- **Support answer (next day):** the account **does** have enough quota. The `quota(s) exceeded … 0/0`
+  message is **not a quota problem**: Scaleway has very high demand for Instances and Kapsule and has
+  **temporarily blocked new deployments in some availability zones** of fr-par while new servers are being
+  installed. The error message is reused for this block. Support suggests another zone or region.
+- **Consequence for the evaluation:** hours were spent on identity verification, payment methods and the
+  quotas page – none of it was the cause. The misleading error message is the real finding, plus the
+  capacity shortage itself. The debit-card theory (above) was the agent's, and it was **wrong**.
+
+## Step 5 – Move to nl-ams, cluster, first deploy (2026-11-27, evening)
+
+**What:** Move the whole stack to Amsterdam (support's suggestion), push images, deploy.
+**How:** Region as tfvars value; registry host and Secret Manager region derived from the registry
+endpoint instead of hard-coded `fr-par` (script + workflow). `terraform apply`: 7 replaced, 2 new.
+
+**Result:**
+- **Cluster in nl-ams worked at once.** Whole stack (DB, network, registry, secret, cluster, pool) in
+  **3 min 41 s**; 2 nodes `Ready`, Kubernetes 1.36.6.
+- The pull-key secret (created via CLI, not Terraform) had to be copied to nl-ams by hand (value only via a
+  temp file, deleted at once) – a downside of keeping it outside Terraform.
+- Images built locally and pushed (`push-images.sh scaleway f448aad`), login with the Terraform profile.
+- **Deploy hung:** backend `permission denied for database "app"`, Keycloak in CrashLoopBackOff. On
+  Scaleway the instance's admin user gets **no rights on databases created separately** – unlike Azure.
+  Needs two extra `scaleway_rdb_privilege` resources. **Not in the agent's plan** (agent mistake: the
+  module was written by analogy to Azure without checking this).
+- After `apply` of the two privileges: backend ready at once, Keycloak after 10 restarts. Re-running
+  `deploy.sh scaleway` fixed the failed Helm release (revision 2, `deployed`). LB-S created by Kapsule.
+- HTTPS not reachable yet: no certificate until DNS points to the new IP (HTTP-01). Issuer: staging first.
+- DNS moved by the user at Strato; public resolvers saw the new IP at once. **cert-manager's self check
+  failed** with a timeout: inside the cluster the domain still resolved to the **old Azure IP** (cached by
+  the cluster's upstream resolver). From outside the solver answered 200. Waiting for the cache to expire.
+- The cluster saw the new IP a few minutes later; cert-manager then issued both staging certificates on
+  its own. Switched to `letsencrypt-prod`, re-deploy (revision 3): **both production certificates** issued.
+
+## Step 6 – Acceptance checks (2026-11-27, ~00:15)
+
+- `https://<domain>` and `https://auth.<domain>`: 200, publicly trusted Let's Encrypt certificates.
+- Anonymous visitor sees the seed text.
+- Backend not reachable from the internet; inside the cluster `POST /texts` without token and with a forged
+  token: **401**.
+- Editor login, create, edit and delete in the browser: **all work** (user). **US1 and US2 passed.**
+- **Idempotent re-deploy:** `deploy.sh scaleway` again: 76 s, Helm revision 4, same LB IP, no pod
+  restarted; `terraform plan`: no changes.
