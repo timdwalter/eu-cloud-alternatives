@@ -1,0 +1,62 @@
+# --- Spec Kit / AI agent working files (not published) ---
+specs/
+.specify/
+.claude/
+CLAUDE.md
+
+# --- Local configuration with real values ---
+*.local.env
+config.local.*
+.env
+.env.*
+!*.example
+
+# --- Terraform ---
+**/.terraform/*
+*.tfstate
+*.tfstate.*
+*.tfplan
+tfplan
+crash.log
+crash.*.log
+*.tfvars
+*.tfvars.json
+!*.tfvars.example
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+.terraformrc
+terraform.rc
+
+# --- Kubernetes ---
+kubeconfig
+*.kubeconfig
+.kube/
+
+# --- Secrets / keys ---
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+
+# --- Node / Next.js ---
+node_modules/
+.next/
+out/
+dist/
+build/
+*.log
+npm-debug.log*
+
+# --- Private content (never commit real texts/PDFs) ---
+content/private/
+*.pdf
+
+# --- IDE / OS ---
+.idea/
+*.iml
+.vscode/
+.DS_Store
+Thumbs.db
