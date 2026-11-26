@@ -3,21 +3,23 @@ set -euo pipefail
 export MSYS_NO_PATHCONV=1 # Git Bash on Windows: do not rewrite /paths in arguments
 
 # pwd -W (Git Bash) gives C:/... paths that Windows binaries like terraform.exe understand
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && (pwd -W 2>/dev/null || pwd))"
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && (pwd -W 2>/dev/null || pwd))"
+TF_DIR="$ROOT/infrastructure/terraform"
+PLATFORM_DIR="$ROOT/infrastructure/platform"
 PROVIDER="${1:?usage: $0 <provider>   (e.g. azure)}"
-PROVIDER_FILE="$ROOT/scripts/providers/$PROVIDER.sh"
+PROVIDER_FILE="$ROOT/infrastructure/scripts/providers/$PROVIDER.sh"
 [[ -f "$PROVIDER_FILE" ]] || { echo "unknown provider: $PROVIDER" >&2; exit 1; }
 
 NAMESPACE=textlib
 
-tf_output() { terraform -chdir="$ROOT/terraform" output -raw "$1"; }
+tf_output() { terraform -chdir="$TF_DIR" output -raw "$1"; }
 
 load_config() {
-  local cfg="$ROOT/platform/config.local.env"
+  local cfg="$PLATFORM_DIR/config.local.env"
   [[ -f "$cfg" ]] || { echo "missing $cfg – copy it from config.local.env.example" >&2; exit 1; }
   set -a
   # shellcheck disable=SC1090,SC1091
-  source "$ROOT/platform/versions.env"
+  source "$PLATFORM_DIR/versions.env"
   source "$cfg"
   set +a
   grep -q 'change-me' "$cfg" && { echo "replace every change-me in $cfg first" >&2; exit 1; }

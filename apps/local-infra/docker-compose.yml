@@ -1,9 +1,9 @@
 # Local run of the whole stack. Usage (from the repo root):
-#   cp local/.env.example local/.env   # then replace every "change-me"
-#   docker compose -f local/docker-compose.yml up --build
-#   local/create-users.sh
+#   cp apps/local-infra/.env.example apps/local-infra/.env   # then replace every "change-me"
+#   docker compose -f apps/local-infra/docker-compose.yml up --build
+#   apps/local-infra/create-users.sh
 #   open http://localhost:3000
-# Image versions match platform/versions.env.
+# Image versions match infrastructure/platform/versions.env.
 name: textlib
 
 services:
@@ -40,7 +40,7 @@ services:
       CLIENT_SECRET: ${CLIENT_SECRET}
       APP_URL: http://localhost:3000
     volumes:
-      - ../platform/charts/textlib/files/realm.json:/opt/keycloak/data/import/realm.json:ro
+      - ../../infrastructure/platform/charts/textlib/files/realm.json:/opt/keycloak/data/import/realm.json:ro
     ports:
       - "8080:8080"
     depends_on:
@@ -48,7 +48,7 @@ services:
         condition: service_healthy
 
   backend:
-    build: ../app/backend
+    build: ../backend
     environment:
       DB_HOST: postgres
       DB_NAME: app
@@ -64,7 +64,7 @@ services:
         condition: service_healthy
 
   frontend:
-    build: ../app/frontend
+    build: ../frontend
     environment:
       APP_NAME: ${APP_NAME}
       BACKEND_URL: http://backend:8080

@@ -1,5 +1,6 @@
-# Provider-neutral defaults. scripts/deploy.sh sets the environment values (domain, registry, db host …)
-# from platform/config.local.env and the Terraform outputs; platform/values/<provider>.yaml adds the
+# Provider-neutral defaults. infrastructure/scripts/deploy.sh sets the environment values (domain, registry,
+# db host …) from infrastructure/platform/config.local.env and the Terraform outputs;
+# infrastructure/platform/values/<provider>.yaml adds the
 # few provider-specific settings.
 
 appName: Text Library
@@ -22,7 +23,7 @@ db:
   appDatabase: app
   keycloakDatabase: keycloak
 
-# Created by scripts/deploy.sh (never in Git): db-password, client-secret, auth-secret, kc-admin-password
+# Created by infrastructure/scripts/deploy.sh (never in Git): db-password, client-secret, auth-secret, kc-admin-password
 secretName: textlib-secrets
 keycloakAdminUser: admin
 

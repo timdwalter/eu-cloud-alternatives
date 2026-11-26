@@ -42,3 +42,13 @@ variable "github_repository" {
   description = "GitHub repository allowed to push images, as owner/name."
   type        = string
 }
+
+variable "github_oidc_subject" {
+  description = <<-EOT
+    Exact "sub" claim of the GitHub OIDC token for pushes to main. Newer repositories use the
+    immutable form repo:<owner>@<owner-id>/<repo>@<repo-id>:ref:refs/heads/main (shown in the error
+    message of a failed azure/login). Null = classic form repo:<owner>/<repo>:ref:refs/heads/main.
+  EOT
+  type        = string
+  default     = null
+}

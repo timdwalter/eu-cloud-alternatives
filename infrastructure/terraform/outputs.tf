@@ -20,7 +20,7 @@ output "db_user" {
 }
 
 output "secret_store_name" {
-  description = "Where the DB password is stored (read by scripts/providers/<provider>.sh)."
+  description = "Where the DB password is stored (read by infrastructure/scripts/providers/<provider>.sh)."
   value       = module.infra.secret_store_name
 }
 

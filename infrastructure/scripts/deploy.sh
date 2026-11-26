@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Installs everything inside the cluster: Envoy Gateway, cert-manager, secrets, the textlib chart, the
 # editor user. Safe to run again (helm upgrade --install, secrets are kept).
-# Usage: scripts/deploy.sh <provider>
+# Usage: infrastructure/scripts/deploy.sh <provider>
 source "$(dirname "$0")/lib.sh"
 load_config
 
@@ -37,8 +37,8 @@ kubectl -n "$NAMESPACE" create secret generic textlib-secrets \
 echo "textlib-secrets ok (values not printed)"
 
 log "textlib chart (image tag $IMAGE_TAG)"
-helm upgrade --install "${HELM_ARGS[@]}" textlib "$ROOT/platform/charts/textlib" --namespace "$NAMESPACE" \
-  -f "$ROOT/platform/values/$PROVIDER.yaml" \
+helm upgrade --install "${HELM_ARGS[@]}" textlib "$PLATFORM_DIR/charts/textlib" --namespace "$NAMESPACE" \
+  -f "$PLATFORM_DIR/values/$PROVIDER.yaml" \
   --set-string domain="$DOMAIN" \
   --set-string appName="$APP_NAME" \
   --set-string realm="$REALM_NAME" \

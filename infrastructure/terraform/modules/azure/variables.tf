@@ -25,6 +25,11 @@ variable "github_repository" {
   type        = string
 }
 
+variable "github_oidc_subject" {
+  type    = string
+  default = null
+}
+
 variable "tags" {
   type = map(string)
 }

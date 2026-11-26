@@ -17,6 +17,11 @@ resource "azurerm_kubernetes_cluster" "this" {
     os_disk_type                = "Managed"
     temporary_name_for_rotation = "systemtmp"
     tags                        = var.tags
+
+    # AKS sets this default itself; declaring it avoids a perpetual diff
+    upgrade_settings {
+      max_surge = "10%"
+    }
   }
 
   identity {

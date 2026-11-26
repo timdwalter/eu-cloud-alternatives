@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Creates the local test users in Keycloak (values from local/.env):
+# Creates the local test users in Keycloak (values from apps/local-infra/.env):
 #   EDITOR_USERNAME – has the realm role "editor"
 #   READER_USERNAME – no role, used to check that writes are rejected
 # Safe to run again: existing users only get their password reset.

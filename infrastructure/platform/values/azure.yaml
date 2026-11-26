@@ -1,4 +1,4 @@
-# Azure-specific Helm values for platform/charts/textlib. Everything else is provider-neutral.
+# Azure-specific Helm values for infrastructure/platform/charts/textlib. Everything else is provider-neutral.
 
 gateway:
   serviceAnnotations:

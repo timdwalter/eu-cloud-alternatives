@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Removes everything deploy.sh installed, in reverse order, and waits until the cloud load balancer
 # is released – otherwise "terraform destroy" can hang on the network resources.
-# Usage: scripts/teardown.sh <provider>
+# Usage: infrastructure/scripts/teardown.sh <provider>
 source "$(dirname "$0")/lib.sh"
 
 log "Cluster credentials ($PROVIDER)"
@@ -22,4 +22,4 @@ done
 
 kubectl delete namespace "$NAMESPACE" cert-manager envoy-gateway-system --ignore-not-found --wait=true
 echo
-echo "Cluster is empty. Next: terraform -chdir=terraform destroy"
+echo "Cluster is empty. Next: terraform -chdir=infrastructure/terraform destroy"

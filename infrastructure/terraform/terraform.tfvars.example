@@ -1,10 +1,13 @@
-# Copy to terraform/terraform.tfvars (gitignored) and fill in.
+# Copy to infrastructure/terraform/terraform.tfvars (gitignored) and fill in.
 
 # az account show --query id -o tsv
 subscription_id = "00000000-0000-0000-0000-000000000000"
 
 # GitHub repository whose main branch may push images (owner/name)
 github_repository = "your-github-user/your-repo"
+
+# Newer repositories send an ID-based subject claim; copy it from the azure/login error message:
+# github_oidc_subject = "repo:your-github-user@12345678/your-repo@987654321:ref:refs/heads/main"
 
 # Optional overrides
 # prefix             = "textlib"

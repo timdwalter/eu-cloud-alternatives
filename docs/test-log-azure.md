@@ -236,3 +236,12 @@ manual (Strato DNS).
 - Let's Encrypt staging certificates are (by design) untrusted – Firefox shows `SEC_ERROR_UNKNOWN_ISSUER`.
 
 **Time:** ~1 h 15 min (most of it waiting for DNS at Strato).
+## Step 9 – Repository restructure (2026-11-27)
+
+**What:** At the user's request: `terraform/` → `infrastructure/terraform/`, `platform/` →
+`infrastructure/platform/`, `scripts/` → `infrastructure/scripts/`, `app/*` → `apps/*`,
+`local/` → `apps/local-infra/`. Done with `git mv` (history kept); local state, tfvars and .env files moved
+with their folders. All paths in scripts, compose file, workflow and docs updated; earlier test-log entries
+keep the old paths.
+**Checks:** `terraform validate`/`plan` from the new location (state found, only the pending OIDC subject
+change), `docker compose config`, `helm lint`, `bash -n` on all scripts, script path resolution.
