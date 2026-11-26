@@ -1,0 +1,10 @@
+# Scaleway-specific Helm values for infrastructure/platform/charts/textlib.
+
+gateway:
+  serviceAnnotations:
+    # Smallest load balancer type, created by the Kapsule cloud controller
+    service.beta.kubernetes.io/scw-loadbalancer-type: "LB-S"
+
+db:
+  # Scaleway issues a certificate per database instance with its own CA (not in Node's trust store)
+  sslMode: "require"

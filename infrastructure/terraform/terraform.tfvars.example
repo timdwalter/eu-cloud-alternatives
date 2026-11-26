@@ -1,17 +1,13 @@
 # Copy to infrastructure/terraform/terraform.tfvars (gitignored) and fill in.
+# Credentials: set SCW_PROFILE to a CLI profile with a project-scoped IAM application key.
 
-# az account show --query id -o tsv
-subscription_id = "00000000-0000-0000-0000-000000000000"
-
-# GitHub repository whose main branch may push images (owner/name)
-github_repository = "your-github-user/your-repo"
-
-# Newer repositories send an ID-based subject claim; copy it from the azure/login error message:
-# github_oidc_subject = "repo:your-github-user@12345678/your-repo@987654321:ref:refs/heads/main"
+# scw account project list
+project_id = "00000000-0000-0000-0000-000000000000"
 
 # Optional overrides
 # prefix             = "textlib"
-# location           = "westeurope"
-# kubernetes_version = "1.36.5"
-# node_size          = "Standard_B2s"
+# region             = "fr-par"
+# zone               = "fr-par-1"
+# kubernetes_version = "1.36.6"
+# node_size          = "PLAY2-NANO"
 # node_count         = 2

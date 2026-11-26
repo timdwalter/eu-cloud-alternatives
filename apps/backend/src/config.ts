@@ -12,8 +12,9 @@ export const config = {
     database: required('DB_NAME'),
     user: required('DB_USER'),
     password: required('DB_PASSWORD'),
-    // "true" = TLS with certificate verification (managed databases), anything else = no TLS (local)
-    ssl: process.env.DB_SSL === 'true',
+    // "true" = TLS with certificate verification, "require" = TLS without verification (provider CA not
+    // publicly trusted, e.g. Scaleway), anything else = no TLS (local)
+    ssl: (process.env.DB_SSL ?? 'false') as 'true' | 'require' | string,
   },
   oidc: {
     // Issuer as it appears in the token (public URL)

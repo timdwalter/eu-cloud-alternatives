@@ -3,7 +3,12 @@ import { config } from './config.ts';
 
 export const pool = new pg.Pool({
   ...config.db,
-  ssl: config.db.ssl ? { rejectUnauthorized: true } : false,
+  ssl:
+    config.db.ssl === 'true'
+      ? { rejectUnauthorized: true }
+      : config.db.ssl === 'require'
+        ? { rejectUnauthorized: false }
+        : false,
   max: 5,
   connectionTimeoutMillis: 5000,
 });

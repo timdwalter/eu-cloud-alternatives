@@ -1,5 +1,5 @@
-variable "subscription_id" {
-  description = "Azure subscription to deploy into."
+variable "project_id" {
+  description = "Scaleway project to deploy into (scw account project list)."
   type        = string
 }
 
@@ -14,41 +14,32 @@ variable "prefix" {
   }
 }
 
-variable "location" {
-  description = "Azure region."
+variable "region" {
+  description = "Scaleway region."
   type        = string
-  default     = "westeurope"
+  default     = "fr-par"
+}
+
+variable "zone" {
+  description = "Scaleway zone for zonal resources (nodes, load balancer, database node)."
+  type        = string
+  default     = "fr-par-1"
 }
 
 variable "kubernetes_version" {
-  description = "AKS Kubernetes version (az aks get-versions --location <region>)."
+  description = "Kapsule Kubernetes version (scw k8s version list)."
   type        = string
-  default     = "1.36.5"
+  default     = "1.36.6"
 }
 
 variable "node_size" {
-  description = "VM size of the single node pool."
+  description = "Instance type of the single node pool."
   type        = string
-  default     = "Standard_B2s"
+  default     = "PLAY2-NANO"
 }
 
 variable "node_count" {
   description = "Number of nodes."
   type        = number
   default     = 2
-}
-
-variable "github_repository" {
-  description = "GitHub repository allowed to push images, as owner/name."
-  type        = string
-}
-
-variable "github_oidc_subject" {
-  description = <<-EOT
-    Exact "sub" claim of the GitHub OIDC token for pushes to main. Newer repositories use the
-    immutable form repo:<owner>@<owner-id>/<repo>@<repo-id>:ref:refs/heads/main (shown in the error
-    message of a failed azure/login). Null = classic form repo:<owner>/<repo>:ref:refs/heads/main.
-  EOT
-  type        = string
-  default     = null
 }

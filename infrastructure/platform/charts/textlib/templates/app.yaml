@@ -20,7 +20,7 @@ spec:
             - { name: DB_HOST, value: {{ .Values.db.host | quote }} }
             - { name: DB_NAME, value: {{ .Values.db.appDatabase | quote }} }
             - { name: DB_USER, value: {{ .Values.db.user | quote }} }
-            - { name: DB_SSL, value: "true" }
+            - { name: DB_SSL, value: {{ .Values.db.sslMode | default "true" | quote }} }
             - name: DB_PASSWORD
               valueFrom: { secretKeyRef: { name: {{ .Values.secretName }}, key: db-password } }
             - { name: OIDC_ISSUER, value: {{ include "textlib.issuer" . | quote }} }

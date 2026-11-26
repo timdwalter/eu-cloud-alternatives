@@ -11,26 +11,26 @@ Azure figures are from the reference deployment (westeurope, list prices, 730 h/
 
 | # | Function | Why we need it | Azure | Created by | Azure €/month | STACKIT | IONOS | Scaleway |
 |---|---|---|---|---|---|---|---|---|
-| 1 | Resource container | Groups everything of the test, so it can be found, tagged (`project=textlib`) and deleted together | Resource group `textlib-rg` | Terraform | 0 | | | |
-| 2 | Private network | The database must not be reachable from the internet; cluster and DB need a common private network | Virtual network `10.20.0.0/16` | Terraform | 0 | | | |
-| 3 | Subnet for nodes | Address range for the Kubernetes nodes | Subnet `aks` `10.20.0.0/22` | Terraform | 0 | | | |
-| 4 | Subnet for the database | Azure requires a dedicated, delegated subnet for a VNet-integrated PostgreSQL | Subnet `db` `10.20.8.0/24` (delegated) | Terraform | 0 | | | |
-| 5 | Private name resolution | The cluster must resolve the DB host name to its private IP | Private DNS zone + VNet link | Terraform | ~0 | | | |
-| 6 | Managed Kubernetes control plane | Runs the API server, scheduler, etc. Managed by the provider | AKS (Free tier) | Terraform | 0 | | | |
-| 7 | Worker nodes | The VMs that run all containers: app, Keycloak, gateway, cert-manager | VM scale set, 2 × `Standard_B2s` (2 vCPU, 4 GiB) | Auto (from AKS node pool) | 62.93 | | | |
-| 8 | Node disks | OS disk per node. Reduced to 32 GB, the default 128 GB would cost ~19 €/node | 2 × Premium SSD P4 | Auto | 10.43 | | | |
-| 9 | Node firewall | Default network rules for the nodes | Network security group | Auto | 0 | | | |
-| 10 | Load balancer | Public entry point; forwards ports 80/443 to the Envoy gateway, and handles outbound traffic of the nodes | Standard Load Balancer `kubernetes` | Auto (from `Service type=LoadBalancer` and AKS outbound) | 16.35 | | | |
-| 11 | Public IP – inbound | The address the DNS A records point to | Public IP (gateway) | Auto | 3.29 | | | |
-| 12 | Public IP – outbound | Source address for traffic from the nodes (image pulls, Let's Encrypt) | Public IP (AKS outbound) | Auto | 3.29 | | | |
-| 13 | Managed PostgreSQL | Database for the app and Keycloak; backups and patches by the provider; private access only | PostgreSQL Flexible Server 17, Burstable B1ms, 32 GB | Terraform | 17.01 | | | |
-| 14 | Container registry | Private image store the cluster pulls from | Container Registry Basic | Terraform | 4.55 | | | |
-| 15 | Pull permission | Nodes pull images without a stored password | `AcrPull` for the kubelet identity (agent pool identity: Auto) | Terraform | 0 | | | |
-| 16 | Secret store | Holds the DB password outside Git and outside the pipeline | Key Vault (RBAC) + secret `db-password` | Terraform | ~0 | | | |
-| 17 | CI identity | Lets the pipeline push images without a stored credential (OIDC federation), allowed to push and nothing else | User-assigned managed identity + federated credential + `AcrPush` | Terraform | 0 | | | |
-| 18 | Network permission for the cluster | The cluster may create load balancers in our own subnet | `Network Contributor` on subnet `aks` | Terraform | 0 | | | |
-| – | Network diagnostics | Not needed by us. Azure creates it automatically with the first VNet in a region | Network Watcher (`NetworkWatcherRG`) | Auto (Azure) | 0 | | | |
-| | **Total** | | | | **≈ 118** | | | |
+| 1 | Resource container | Groups everything of the test, so it can be found, tagged (`project=textlib`) and deleted together | Resource group `textlib-rg` | Terraform | 0 | | | Project `eu-cloud-alternatives` + tags `project=textlib` (project created by the user) – 0 € |
+| 2 | Private network | The database must not be reachable from the internet; cluster and DB need a common private network | Virtual network `10.20.0.0/16` | Terraform | 0 | | | VPC + Private Network `textlib-pn` – 0 € |
+| 3 | Subnet for nodes | Address range for the Kubernetes nodes | Subnet `aks` `10.20.0.0/22` | Terraform | 0 | | | – (Private Network is one flat IPAM-managed range) |
+| 4 | Subnet for the database | Azure requires a dedicated, delegated subnet for a VNet-integrated PostgreSQL | Subnet `db` `10.20.8.0/24` (delegated) | Terraform | 0 | | | – **not needed** (DB attaches to the same Private Network) |
+| 5 | Private name resolution | The cluster must resolve the DB host name to its private IP | Private DNS zone + VNet link | Terraform | ~0 | | | DB private endpoint IP via IPAM (Terraform output) – 0 € |
+| 6 | Managed Kubernetes control plane | Runs the API server, scheduler, etc. Managed by the provider | AKS (Free tier) | Terraform | 0 | | | Kapsule **mutualized** (no SLA) – 0 € |
+| 7 | Worker nodes | The VMs that run all containers: app, Keycloak, gateway, cert-manager | VM scale set, 2 × `Standard_B2s` (2 vCPU, 4 GiB) | Auto (from AKS node pool) | 62.93 | | | Pool 2 × `PLAY2-NANO` (2 vCPU, 4 GB) – 40.21 € |
+| 8 | Node disks | OS disk per node. Reduced to 32 GB, the default 128 GB would cost ~19 €/node | 2 × Premium SSD P4 | Auto | 10.43 | | | Root volumes 2 × 20 GB block storage – 3.80 € |
+| 9 | Node firewall | Default network rules for the nodes | Network security group | Auto | 0 | | | Security group – Auto, 0 € |
+| 10 | Load balancer | Public entry point; forwards ports 80/443 to the Envoy gateway, and handles outbound traffic of the nodes | Standard Load Balancer `kubernetes` | Auto (from `Service type=LoadBalancer` and AKS outbound) | 16.35 | | | `LB-S` – Auto (Kapsule cloud controller) – 16.79 € |
+| 11 | Public IP – inbound | The address the DNS A records point to | Public IP (gateway) | Auto | 3.29 | | | LB IP – Auto – 3.65 € |
+| 12 | Public IP – outbound | Source address for traffic from the nodes (image pulls, Let's Encrypt) | Public IP (AKS outbound) | Auto | 3.29 | | | **Different:** each node has its own public IPv4 (inbound closed by the security group), no shared outbound IP; private-only nodes would need a Public Gateway – 7.30 € |
+| 13 | Managed PostgreSQL | Database for the app and Keycloak; backups and patches by the provider; private access only | PostgreSQL Flexible Server 17, Burstable B1ms, 32 GB | Terraform | 17.01 | | | Managed Database `DB-PLAY2-PICO`, PostgreSQL 17, 10 GB, **Private Network endpoint only** – 18.00 € |
+| 14 | Container registry | Private image store the cluster pulls from | Container Registry Basic | Terraform | 4.55 | | | Registry namespace (private) – < 0.10 € |
+| 15 | Pull permission | Nodes pull images without a stored password | `AcrPull` for the kubelet identity (agent pool identity: Auto) | Terraform | 0 | | | **Different:** no keyless pull – read-only IAM application, key in Secret Manager, `imagePullSecret` created by `providers/scaleway.sh` – 0 € |
+| 16 | Secret store | Holds the DB password outside Git and outside the pipeline | Key Vault (RBAC) + secret `db-password` | Terraform | ~0 | | | Secret Manager, secrets `db-password` and `registry-pull-key` – < 0.10 € |
+| 17 | CI identity | Lets the pipeline push images without a stored credential (OIDC federation), allowed to push and nothing else | User-assigned managed identity + federated credential + `AcrPush` | Terraform | 0 | | | **Missing (keyless):** no OIDC federation – IAM application with `ContainerRegistryFullAccess` on the project, API key as GitHub secret – 0 € |
+| 18 | Network permission for the cluster | The cluster may create load balancers in our own subnet | `Network Contributor` on subnet `aks` | Terraform | 0 | | | – not needed |
+| – | Network diagnostics | Not needed by us. Azure creates it automatically with the first VNet in a region | Network Watcher (`NetworkWatcherRG`) | Auto (Azure) | 0 | | | – (no equivalent auto-created resource) |
+| | **Total** | | | | **≈ 118** | | | **≈ 90** |
 
 ## Inside the cluster (identical on every provider)
 

@@ -20,6 +20,8 @@ images:
 db:
   host: ""
   user: ""
+  # "true" = verify the server certificate, "require" = encrypt without verification
+  sslMode: "true"
   appDatabase: app
   keycloakDatabase: keycloak
 

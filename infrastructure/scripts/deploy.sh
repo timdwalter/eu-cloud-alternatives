@@ -36,6 +36,11 @@ kubectl -n "$NAMESPACE" create secret generic textlib-secrets \
   --dry-run=client -o yaml | kubectl apply -f - >/dev/null
 echo "textlib-secrets ok (values not printed)"
 
+if declare -F provider_pre_deploy >/dev/null; then
+  log "Provider-specific preparation ($PROVIDER)"
+  provider_pre_deploy
+fi
+
 log "textlib chart (image tag $IMAGE_TAG)"
 helm upgrade --install "${HELM_ARGS[@]}" textlib "$PLATFORM_DIR/charts/textlib" --namespace "$NAMESPACE" \
   -f "$PLATFORM_DIR/values/$PROVIDER.yaml" \
