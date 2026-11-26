@@ -48,7 +48,8 @@ Same criteria and scale as [evaluation-azure.md](evaluation-azure.md). Evidence:
 _Filled in after the deployment test._ Known so far:
 
 - **Provider – onboarding:** Kapsule quota 0/0 despite identity verification; payment method (debit
-  card) accepted but not validated; no indication anywhere except the error on create.
+  card) accepted but not validated; no indication anywhere except the error on create. The quotas page states that quotas are limited by default to prevent abuse and must be requested
+  from support – an unnecessary hurdle for a new customer who wants a single free-tier cluster.
 - **Provider – console UX:** region selector per page (VPC landed in nl-ams by mistake); the cluster
   wizard shows the price and only then the quota error.
 - **Agent:** did not check organisation quotas before the first apply (no CLI command for it); wrongly

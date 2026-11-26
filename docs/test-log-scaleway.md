@@ -150,3 +150,10 @@ the place to check it before applying.
   **0/0**. Either the card's validation is still pending, or the level change takes time.
 - The verification charge on the credit card shows as *pending* in the bank app (unlike the debit card,
   where nothing appeared). Next `apply`: still **0/0**. The level change is not instant after the charge.
+- Next `apply` some time later: still **0/0**.
+- **Quotas page text (Organization dashboard):** the page explains that quotas are limited by default
+  "to prevent abuse" and that more must be requested from support. For a new customer who wants one
+  small cluster this is an **unnecessary hurdle**: the free cluster type is advertised, the default
+  quota for it is 0, there is no self-service request, and the page does not even list Kubernetes.
+  Support ticket sent (stating that providers are being evaluated). Azure was torn down meanwhile
+  (see test-log-azure.md), so the domain is offline until Scaleway is up.
