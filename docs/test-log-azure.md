@@ -245,3 +245,68 @@ with their folders. All paths in scripts, compose file, workflow and docs update
 keep the old paths.
 **Checks:** `terraform validate`/`plan` from the new location (state found, only the pending OIDC subject
 change), `docker compose config`, `helm lint`, `bash -n` on all scripts, script path resolution.
+## Step 10 – Image pipeline with OIDC (2026-11-27)
+
+**What:** GitHub Actions workflow builds and pushes both images to ACR on every push to `main`;
+deployed the pipeline-built images (`28e0124`).
+**How:** Workflow in Git; repository variables set with `gh variable set` (client ID, tenant ID, registry –
+not secrets); Terraform change for the federated credential (with the user's OK).
+
+**Results**
+- Second run: both jobs green in ~2 min, no stored credential anywhere (OIDC token → Azure token).
+- The CI identity has exactly one role assignment: `AcrPush` on the registry. No subscription role, no
+  cluster access.
+- Secret scanning and push protection were already enabled by default on the public repository.
+
+**Surprises / where the agent was wrong**
+- First run failed: `AADSTS700213 No matching federated identity record found for presented assertion
+  subject 'repo:<owner>@<owner-id>/<repo>@<repo-id>:ref:refs/heads/main'`. GitHub now sends an
+  **ID-based subject claim** for this repository; the agent had configured the classic
+  `repo:<owner>/<repo>:ref:refs/heads/main` from older docs. Made the subject configurable
+  (`github_oidc_subject`) and took the exact value from the error message.
+- `azure/login` needs `allow-no-subscriptions: true` because the identity has no role on the
+  subscription; `az acr login` with the full login server name avoids an ARM lookup it may not do.
+  Both worked first try.
+- `terraform plan` showed an unexpected in-place change on AKS: AKS had set default `upgrade_settings`
+  (`max_surge = 10%`) that the code did not declare. Declared it to get a clean plan.
+- `gh` was not logged in; device login in the browser by the user.
+
+**Time:** ~40 min.
+---
+
+## Summary (preliminary – final cost after teardown)
+
+**Result:** the minimal enterprise stack runs on Azure as specified: AKS, private PostgreSQL, ACR,
+Key Vault, Envoy Gateway with Let's Encrypt, self-hosted Keycloak (OIDC), and keyless GitHub Actions
+pushing images. From an empty subscription to a working HTTPS app with login took about **5 hours of the
+person's time**, much of it running in the background. It was spread over two calendar days only because the
+new domain at Strato was activated overnight. That time includes the scope discussion, the local app and the
+problems below. A clean re-deploy
+with the finished code takes **~25 min** (Terraform 9 min, images, `deploy.sh`, DNS propagation not
+counted).
+
+**What went smoothly**
+- Terraform apply of 22 resources in 9 minutes, once the region was right.
+- Private database via VNet integration, Key Vault secret flow, AcrPull for the kubelet without secrets.
+- The in-cluster layer (Envoy Gateway, cert-manager, Keycloak, app) is provider-neutral. Only one Helm
+  value (the LB health probe) and one Helm flag are Azure-specific.
+
+**What cost time (ordered by impact)**
+1. **PostgreSQL not available in germanywestcentral** for this subscription ("Provisioning is restricted
+   in this region"), with a misleading error message. No pre-check reveals it. Moved to westeurope.
+2. **vCPU quota 0 for the planned VM family** (Basv2). Switched to `Standard_B2s`.
+3. **Outdated agent knowledge:** azurerm 5 (5 schema errors), Terraform 1.17, Helm 4, Node 26 LTS,
+   GitHub's ID-based OIDC subject claim. Each one was found by a failing command, not up front.
+4. **AKS specifics:** the admissions enforcer conflicts with Helm 4 server-side apply on the second deploy.
+   AKS-set defaults (`upgrade_settings`) show up as drift.
+5. **DNS at the registrar (Strato):** subdomains must be created separately, and parking AAAA records
+   must be removed.
+6. Agent workflow mistakes: chaining destroy + apply in one background job, Windows paths in Git Bash,
+   `runAsNonRoot` with a non-numeric image user, and a second random editor password for Azure (the user
+   could not log in with the local one – unnecessary; now both use the same editor credentials).
+
+**Manual steps that remain:** budget alert, DNS records, one-time `gh`/`az` logins, provider
+registration, setting three repository variables.
+
+**Cost:** estimate ≈ 118 €/month ≈ 3.90 €/day. Actual cost for the test period: _to be filled in
+after teardown (Cost Management, billing delay)._
