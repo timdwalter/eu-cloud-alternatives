@@ -8,7 +8,7 @@ Input for `/speckit-constitution` and `/speckit-specify`. Guiding principle: **u
 - Each provider is tested for roughly a day, then torn down. The app is a demo only; where (and whether) it runs permanently for the family is decided at the end of the series.
 
 ## Repository & branching
-- Public GitHub repository. No real values (domain, subscription/tenant ID) committed; local `.tfvars` is gitignored. GitHub secret scanning + push protection enabled.
+- Public GitHub repository. No real values (domain, subscription/tenant ID) committed; local `.tfvars` is gitignored. GitHub secret scanning + push protection enabled, plus a local `gitleaks` check.
 - `main` = Azure reference. Must work end-to-end and be tagged (`azure-tested`) before any other provider starts.
 - Each European provider branches **from `main`** (star topology): `002-stackit`, `003-ionos`, `004-scaleway`. The diff `main..<branch>` is the migration effort.
 - Provider branches add `terraform/modules/<provider>` next to `modules/azure` instead of rewriting it.
@@ -19,8 +19,9 @@ Input for `/speckit-constitution` and `/speckit-specify`. Guiding principle: **u
 - All texts are public. Login only for editing.
 - One Keycloak role: `editor` (create, update, delete). No `family` role, no visibility flag.
 - **Frontend:** Next.js (TypeScript), login via Auth.js with the Keycloak provider.
-- **Backend:** Node.js 24 LTS, TypeScript, Fastify, `pg` with plain SQL. One table `texts` (id, title, body, updated_at), created on startup if missing. Validates Keycloak JWT (JWKS) and checks role `editor` on write requests.
-- Two containers. Same hostname: Gateway routes `/api/*` to the backend, everything else to the frontend (no CORS).
+- **Backend:** Node.js 26 LTS, TypeScript, Fastify, `pg` with plain SQL. One table `texts` (id, title, body, updated_at), created on startup if missing. Validates Keycloak JWT (JWKS) and checks role `editor` on write requests.
+- Two containers. The backend is internal only: the Next.js server calls it and forwards the editor's access token; only the frontend is public (no CORS, no path split).
+- The whole app first runs locally with Docker Compose (frontend, backend, PostgreSQL, Keycloak) before any cloud work.
 - No tests.
 
 ## Infrastructure (Azure, `germanywestcentral`)

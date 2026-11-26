@@ -1,0 +1,22 @@
+{
+  "name": "textlib-backend",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=26"
+  },
+  "scripts": {
+    "start": "node src/server.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "fastify": "5.12.8",
+    "jose": "6.2.18",
+    "pg": "8.23.1"
+  },
+  "devDependencies": {
+    "@types/node": "26.6.11",
+    "@types/pg": "8.23.1",
+    "typescript": "5.9.3"
+  }
+}

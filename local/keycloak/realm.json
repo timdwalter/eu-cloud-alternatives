@@ -1,0 +1,35 @@
+{
+  "realm": "${REALM_NAME}",
+  "enabled": true,
+  "registrationAllowed": false,
+  "accessTokenLifespan": 1800,
+  "ssoSessionIdleTimeout": 1800,
+  "roles": {
+    "realm": [
+      {
+        "name": "editor",
+        "description": "May create, edit and delete texts"
+      }
+    ]
+  },
+  "clients": [
+    {
+      "clientId": "${CLIENT_ID}",
+      "name": "Text library web app",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "${CLIENT_SECRET}",
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "redirectUris": ["${APP_URL}/*"],
+      "webOrigins": ["${APP_URL}"],
+      "attributes": {
+        "pkce.code.challenge.method": "S256",
+        "post.logout.redirect.uris": "${APP_URL}/*"
+      }
+    }
+  ]
+}
