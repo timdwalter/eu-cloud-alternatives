@@ -75,6 +75,7 @@ Same criteria and scale as [evaluation-azure.md](evaluation-azure.md). Evidence:
 - **DB certificate from a per-instance CA:** the app encrypts but does not verify (app change on the branch).
 - **IAM only at organisation level:** helper identities created with the CLI, outside Terraform, so they
   are not removed by `terraform destroy`.
+- **Login:** the login page asks to choose between Scaleway and Dedibox (separate older product line).
 - **Console:** region chosen per page (a VPC landed in Amsterdam by mistake); the cluster wizard lets you
   configure everything before it fails on the block.
 

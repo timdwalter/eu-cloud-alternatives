@@ -243,3 +243,6 @@ endpoint instead of hard-coded `fr-par` (script + workflow). `terraform apply`: 
 - Four of the leftovers (3 IAM applications, 1 secret) were not removed by `terraform destroy`, because
   they had to be created outside Terraform (IAM is organisation-scoped). On Azure, `destroy` removed
   everything.
+- **Login page (user's note):** the login distinguishes between **Scaleway** (cloud console) and
+  **Dedibox** (dedicated servers, a separate older product line with its own console). Not a problem once
+  known, but a first-time user has to know which one is meant – similar to IONOS with its two portals.
