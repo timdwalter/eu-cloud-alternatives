@@ -199,3 +199,33 @@ endpoint instead of hard-coded `fr-par` (script + workflow). `terraform apply`: 
 - Editor login, create, edit and delete in the browser: **all work** (user). **US1 and US2 passed.**
 - **Idempotent re-deploy:** `deploy.sh scaleway` again: 76 s, Helm revision 4, same LB IP, no pod
   restarted; `terraform plan`: no changes.
+
+## Step 7 – Pipeline (2026-11-27)
+
+- Two runs on the branch failed at the login step, both triggered automatically by pushes that touched
+  the workflow file (not planned by the agent – it did not think of the path filter on `build.yml`):
+  - 2026-11-26 16:09 (first branch push): Scaleway answered `api_key … not_found` – the stored key was
+    **rejected** by the fr-par registry. Cause still to be checked (wrong value stored, or key not yet
+    active).
+  - 2026-11-26 23:44: the repository variable `REGISTRY` still held the deleted Azure registry, so the
+    login failed with `no such host` – the key was not sent anywhere.
+- **Checked before claiming "no keyless CI login"** (user's request). The scaleway.com docs block automated
+  fetches (403), so the docs were searched in Scaleway's public docs repository `scaleway/docs-content`:
+  - No page mentions OIDC, OpenID Connect or workload identity.
+  - "Identity federation" (`pages/iam/user-provisioning/set-up-identity-federation.mdx`) is **SSO for human
+    members** (OAuth2 with Google/GitHub, SAML), not for machines or CI.
+  - Scaleway's own tutorial `tutorials/use-container-registry-github-actions` stores the **API secret key**
+    as a GitHub secret.
+  - The official action `scaleway/action-scw` takes `access-key` and `secret-key` inputs, no OIDC.
+  - Permission sets for the registry (CLI, read-only, user profile): only `ContainerRegistryReadOnly` and
+    `ContainerRegistryFullAccess` – no push-only set.
+  - What does exist: API keys can have an **expiry date** (ours: 1 year). Shortest-lived key = the only
+    mitigation.
+  **Result:** the claim holds – no keyless CI login on Scaleway as of 2026-11-27.
+- **Pipeline fixed:** new API key for `textlib-ci` with **7-day expiry** and the test project as default
+  project, written straight into the GitHub secret (value not printed); old 1-year key deleted. Repository
+  variable `REGISTRY` set to the nl-ams namespace. Manual run on `004-scaleway`: **success**, both images
+  pushed (tag `e3d7bbd`), login 2–3 s. Why the old key was rejected stays unclear (wrong value stored, or
+  missing default project).
+- **Time (user's estimate):** ~4 h active work, ~8 h waiting for support. Support answers only appear in
+  the console; the e-mail only says that a new message exists, so the answer was noticed late.
