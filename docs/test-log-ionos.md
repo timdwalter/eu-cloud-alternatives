@@ -161,3 +161,19 @@ workflow login step.
   **US4 passed.** Like Scaleway: no OIDC, a stored credential – but scoped to the registry, push without
   delete, and with a built-in expiry date (better than Scaleway's `ContainerRegistryFullAccess`).
 - **Time (user's estimate):** ~2 h active work, plus the up-to-24-hour contract review.
+
+## Summary (before teardown)
+
+- **Result:** all acceptance checks passed (US1–US4), idempotent re-deploy, pipeline green. App and chart
+  **unchanged** from `main`.
+- **Changed outside the provider module:** root Terraform files, `deploy.sh` hook, workflow login step,
+  README section. Nothing in `apps/` or `infrastructure/platform/charts/`.
+- **Gaps vs. Azure:** no secret store (accepted), no OIDC for CI, no keyless pull, no cloud load balancer.
+- **Surprises:** manual 24-hour contract review; separate IONOS Cloud portal; PostgreSQL v2 with one
+  database only; 4 GB minimum for the database; undocumented date format in the Terraform provider;
+  a CLI command against a decommissioned API.
+- **Agent mistakes:** 4 (token date format, Windows `KUBECONFIG`, DB minimum assumed, SQL quoting bug
+  caught before running).
+- **Time:** ~2 h active (user's estimate) + up to 24 h review. Apply ~6 min, deploy ~4 min.
+- **Cost:** compared based on list prices: ≈ 140–150 €/month net (≈ 4.60–4.95 €/day), paid from the
+  € 200 starting credit.

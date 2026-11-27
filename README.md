@@ -146,6 +146,79 @@ What is left and free of charge: the automatically created `NetworkWatcherRG`, a
 Vault if a run failed. Azure purges it after 7 days. The DNS records at your registrar point nowhere
 until the next deployment.
 
+## Deploy to IONOS (branch `003-ionos`)
+
+Same scripts and chart as on Azure, with the provider argument `ionos`. Details and findings:
+[test log](docs/test-log-ionos.md), [evaluation](docs/evaluation-ionos.md).
+
+### Prerequisites
+
+- Tools as above, plus **`ionosctl`** (no winget/Chocolatey package: ZIP from the GitHub releases of
+  `ionos-cloud/ionosctl`, add it to `PATH`). No Azure CLI needed.
+- An **IONOS Cloud** contract (Data Center Designer, separate from the normal IONOS customer account) with
+  the **full version unlocked** – IONOS reviews it manually, up to 24 h. API tokens only exist after that.
+- A **least-privilege user for Terraform**, created once in the DCD by the contract owner
+  (Management → Users & Groups):
+  - group `textlib-terraform` with the privileges *Create Data Center*, *Create Kubernetes Clusters*,
+    *Manage DBaaS*, *Manage Registry*, *Reserve IP*, *Create Internet Access*
+  - a non-admin user in that group (needs its own e-mail address)
+  - log in as that user, Token Manager → token with a short TTL (1 h – a few days)
+- Check read-only before the first apply: `ionosctl contract get` (cores, RAM, IPs, Kubernetes clusters).
+
+### Cost
+
+Roughly **140–150 €/month net ≈ 4.60–4.95 €/day** with list prices in `de/fra`, mainly the database
+(smallest DBaaS size is 1 core / 4 GB ≈ 64 €). **Set a Cost Alert before the first apply**
+(DCD → Management → Cost Alert; notification only, no cap).
+
+### Steps
+
+```bash
+# Credentials of the Terraform user (never in Git)
+ionosctl login --token "<token>"                          # used by the scripts
+export IONOS_TOKEN="<token>"                             # used by Terraform
+
+# 1. Infrastructure (~6 min)
+terraform -chdir=infrastructure/terraform init
+terraform -chdir=infrastructure/terraform apply           # terraform.tfvars is optional on IONOS
+
+# 2. Images – by hand once (or the pipeline, see below)
+infrastructure/scripts/push-images.sh ionos               # logs in with the CI registry token
+
+# 3. Everything inside the cluster
+infrastructure/scripts/deploy.sh ionos                    # pull secret, "keycloak" database, chart; prints the IP
+```
+
+4. **DNS** and **TLS** as for Azure (A records to the printed IP, staging first, then `letsencrypt-prod`).
+
+What is different from Azure:
+- **No secret store:** the DB password and the registry token passwords are only in the local Terraform
+  state (gitignored). Keep the state safe – it replaces Key Vault here.
+- **No keyless pull:** `deploy.sh` creates the pull secret `ionos-registry` from a pull-only registry token.
+- **One database per PostgreSQL cluster:** `deploy.sh` creates the `keycloak` database through a one-off
+  `psql` pod with a verified TLS connection.
+- **No cloud load balancer:** the `LoadBalancer` IP is attached to one node.
+- The registry tokens expire after **7 days**; after that run `terraform apply -replace=…` for the tokens.
+
+### Image pipeline
+
+No OIDC on IONOS. The workflow logs in with the CI registry token (pull + push, no delete):
+- repository **secret** `IONOS_REGISTRY_PASSWORD` = `terraform output -raw registry_ci_password`
+- repository **variables** `REGISTRY`, `REGISTRY_USERNAME` from `terraform output ci_variables`
+- on this branch the pipeline runs only when started by hand (`gh workflow run build.yml --ref 003-ionos`)
+
+### Tear down
+
+```bash
+infrastructure/scripts/teardown.sh ionos
+terraform -chdir=infrastructure/terraform destroy
+ionosctl compute datacenter list; ionosctl k8s cluster list; ionosctl container-registry registry list   # should be empty
+gh secret delete IONOS_REGISTRY_PASSWORD; gh variable delete REGISTRY; gh variable delete REGISTRY_USERNAME
+```
+
+The Terraform user, its group and token are not managed by Terraform: delete them in the DCD when you are
+done (the token also expires on its own).
+
 ## Adding a provider
 
 On a branch created from `main`:
