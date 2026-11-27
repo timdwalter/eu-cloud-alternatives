@@ -3,8 +3,7 @@
 Same criteria and scale as [evaluation-azure.md](evaluation-azure.md). Evidence:
 [test log](test-log-ionos.md). Building blocks per resource: [building-blocks.md](building-blocks.md).
 
-> Status: **deployment test passed** (`de/fra`). Teardown follows. Costs are compared **based on list
-> prices**.
+> Status: **tested and torn down** (`de/fra`). Costs are compared **based on list prices**.
 
 ## Differences to the Azure reference
 
@@ -119,7 +118,7 @@ agent 4.
 ## Scores
 
 Scale **1–5**, same as Azure (5 = worked as expected, no detours · 3 = worked with noticeable detours ·
-1 = blocked or missing). **Preliminary:** teardown follows.
+1 = blocked or missing).
 
 | Criterion | Score | Reasoning |
 |---|---|---|
@@ -134,12 +133,12 @@ Scale **1–5**, same as Azure (5 = worked as expected, no detours · 3 = worked
 | Error messages & diagnosability | **3** | Mostly clear (403 for missing privileges, 410 for the old API). Minus: the token date error is a raw Go parse message. |
 | Documentation | **3** | docs.ionos.com is thorough (incl. a machine-readable index). Minus: moved pages (404), DB minimum not in the docs, price list for "business customers". |
 | Cost transparency | **3** | EUR price list public and current. Minus: no control-plane line, node IPs unclear, the most expensive setup of the three. |
-| Teardown | – | Follows. |
+| Teardown | **4** | `destroy` in 4 min, contract usage back to 0, nothing billable left. Minus: the Terraform user, group and token are manual objects in the DCD (as the helper identities on Scaleway). |
 | Portability of the in-cluster layer | **5** | No app or chart change; only a pre-deploy hook in the provider script. |
 | Production readiness offered | **4** | Multi-zone node pools, HA PostgreSQL, private clusters, autoscaling, WAF, DDoS Protect, Kubernetes audit logs to Object Storage, registry scanning, BSI C5 (partial scope). Missing: managed identity service, secret store ([checklist](production-readiness-checklist.md#ionos)). |
 | Data sovereignty | – | Not scored here (same as Azure). |
 
-**Preliminary average (13 scored criteria): 3.3 / 5** (sum 43) · Azure 3.9 · Scaleway 3.1.
+**Average (14 scored criteria): 3.4 / 5** (sum 47) · Azure 3.9 · Scaleway 3.1.
 
 ## Time
 
@@ -150,7 +149,7 @@ Scale **1–5**, same as Azure (5 = worked as expected, no detours · 3 = worked
 | Whole stack from the finished code | ~6 min apply + ~4 min deploy + DNS |
 | Re-deploy (idempotent) | 65 s |
 
-## Verdict (preliminary)
+## Verdict
 
 IONOS delivered the **cleanest migration** so far: the same app and chart, a fast and predictable build,
 visible limits. The costs of that are a slow, manual start, a database that is much more expensive than

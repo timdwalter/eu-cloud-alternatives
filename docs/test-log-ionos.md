@@ -162,10 +162,22 @@ workflow login step.
   delete, and with a built-in expiry date (better than Scaleway's `ContainerRegistryFullAccess`).
 - **Time (user's estimate):** ~2 h active work, plus the up-to-24-hour contract review.
 
-## Summary (before teardown)
+## Step 9 – Teardown (2026-11-28, 14:35–14:40)
 
-- **Result:** all acceptance checks passed (US1–US4), idempotent re-deploy, pipeline green. App and chart
-  **unchanged** from `main`.
+- `teardown.sh ionos`: Helm releases removed, the `LoadBalancer` IP released, namespaces deleted.
+- `terraform destroy`: **10 of 10** resources in **4 min** (node pool 3 min 10 s, PostgreSQL 3 min 9 s,
+  in parallel; cluster 49 s, data center 26 s).
+- GitHub: secret `IONOS_REGISTRY_PASSWORD` and variables `REGISTRY`, `REGISTRY_USERNAME` deleted. Local
+  kubeconfig entries removed, state parked.
+- **Check:** no data center, Kubernetes cluster, registry or IP block left; contract usage 0 cores, 0 RAM,
+  0 clusters, 0 reserved IPs. Terraform state empty.
+- **Not removed by Terraform** (created by hand on purpose): the user `textlib-terraform`, its group and
+  token – to be deleted in the DCD by the owner (the token expires on its own after 4 h).
+
+## Summary
+
+- **Result:** all acceptance checks passed (US1–US4), idempotent re-deploy, pipeline green, torn down
+  with nothing billable left. App and chart **unchanged** from `main`.
 - **Changed outside the provider module:** root Terraform files, `deploy.sh` hook, workflow login step,
   README section. Nothing in `apps/` or `infrastructure/platform/charts/`.
 - **Gaps vs. Azure:** no secret store (accepted), no OIDC for CI, no keyless pull, no cloud load balancer.
