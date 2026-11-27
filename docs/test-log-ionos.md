@@ -148,4 +148,15 @@ workflow login step.
 - Inside the cluster `POST /texts` without token and with a forged token: **401**.
 - **DB exposure:** the public DNS name of the database resolves to the **private** address `10.20.0.5`
   only – no public endpoint.
-- Editor login and create/edit/delete in the browser: by the user.
+- Editor login, create, edit and delete in the browser: **all work** (user). **US1 and US2 passed.**
+- **Idempotent re-deploy:** `deploy.sh ionos` again: 65 s, Helm revision 3, same IP, no pod restarted,
+  `pg-init` reports "database keycloak exists"; `terraform plan`: no changes.
+
+## Step 8 – Pipeline (2026-11-28)
+
+- CI registry token (scopes pull + push, no delete, 7-day expiry, created by Terraform) stored as the
+  GitHub secret `IONOS_REGISTRY_PASSWORD` straight from `terraform output` (value not printed); variables
+  `REGISTRY`, `REGISTRY_USERNAME` set.
+- Manual run on `003-ionos`: **success at the first attempt**, both images pushed (tag `afb3ea8`).
+  **US4 passed.** Like Scaleway: no OIDC, a stored credential – but scoped to the registry, push without
+  delete, and with a built-in expiry date (better than Scaleway's `ContainerRegistryFullAccess`).
