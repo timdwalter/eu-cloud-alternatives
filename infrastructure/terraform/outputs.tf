@@ -28,3 +28,23 @@ output "ci_variables" {
   description = "Non-secret values to set as GitHub repository variables for the image pipeline."
   value       = module.infra.ci_variables
 }
+
+# IONOS only: no secret store and no keyless pull/CI login, so these come from the (local) state.
+output "db_password" {
+  value     = module.infra.db_password
+  sensitive = true
+}
+
+output "registry_pull_user" {
+  value = module.infra.registry_pull_user
+}
+
+output "registry_pull_password" {
+  value     = module.infra.registry_pull_password
+  sensitive = true
+}
+
+output "registry_ci_password" {
+  value     = module.infra.registry_ci_password
+  sensitive = true
+}

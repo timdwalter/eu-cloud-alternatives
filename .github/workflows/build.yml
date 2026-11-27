@@ -1,19 +1,20 @@
-# Builds both images and pushes them to the registry. No stored credentials: GitHub's OIDC token is
-# exchanged for an Azure token of an identity that may only push images (AcrPush on one registry).
+# Builds both images and pushes them to the registry.
+# IONOS: no OIDC federation for CI, so the pipeline logs in with a registry token (scopes pull + push,
+# no delete, 7-day expiry) stored as the repository *secret* IONOS_REGISTRY_PASSWORD.
 # The pipeline never talks to the cluster – deployment stays manual (infrastructure/scripts/deploy.sh).
 #
-# Repository *variables* (not secrets, they are not confidential) – from `terraform output ci_variables`:
-#   AZURE_CLIENT_ID, AZURE_TENANT_ID, REGISTRY
+# Repository *variables* – from `terraform output ci_variables`: REGISTRY, REGISTRY_USERNAME
 name: build-images
 
 on:
+  # Automatic runs only on main; on the provider branch the pipeline is started by hand, so pushes that
+  # touch this file do not trigger runs with missing credentials (lesson from the Scaleway test).
   push:
     branches: [main]
     paths: ["apps/backend/**", "apps/frontend/**", ".github/workflows/build.yml"]
   workflow_dispatch:
 
 permissions:
-  id-token: write # OIDC token for azure/login
   contents: read
 
 jobs:
@@ -25,17 +26,12 @@ jobs:
     steps:
       - uses: actions/checkout@v7.0.1
 
-      - name: Azure login (OIDC)
-        uses: azure/login@v3.1.0
-        with:
-          client-id: ${{ vars.AZURE_CLIENT_ID }}
-          tenant-id: ${{ vars.AZURE_TENANT_ID }}
-          # The identity has no role on the subscription, only AcrPush on the registry
-          allow-no-subscriptions: true
-
-      - name: Registry login
-        # Full login server name: avoids an ARM lookup the identity is not allowed to do
-        run: az acr login --name "${{ vars.REGISTRY }}"
+      - name: Registry login (token, no OIDC available)
+        env:
+          REGISTRY: ${{ vars.REGISTRY }}
+          REGISTRY_USERNAME: ${{ vars.REGISTRY_USERNAME }}
+          REGISTRY_PASSWORD: ${{ secrets.IONOS_REGISTRY_PASSWORD }}
+        run: echo "$REGISTRY_PASSWORD" | docker login "$REGISTRY" -u "$REGISTRY_USERNAME" --password-stdin
 
       - name: Build and push
         env:

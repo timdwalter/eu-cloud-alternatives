@@ -1,0 +1,5 @@
+# IONOS-specific Helm values for infrastructure/platform/charts/textlib.
+# Nothing needed: IONOS Managed Kubernetes attaches a public IP to one node for Service type=LoadBalancer,
+# without annotations. The database certificate comes from Let's Encrypt, so the default
+# (verified TLS) works unchanged.
+{}
