@@ -4,7 +4,8 @@ Every provider test has to deliver **the same functions**. Resource names differ
 list is organised by function. For each provider, fill in which resource provides it. If a provider
 needs extra parts or cannot offer one, that is a result for the article.
 
-Azure figures are from the reference deployment (westeurope, list prices, 730 h/month).
+Azure figures are from the reference deployment (westeurope, list prices, 730 h/month). Scaleway: tested in
+`nl-ams` (planned `fr-par`, blocked by a capacity shortage), same list prices.
 "Auto" = created by the managed Kubernetes service itself, not declared in our Terraform code.
 
 ## Infrastructure (Terraform module per provider)
@@ -23,11 +24,11 @@ Azure figures are from the reference deployment (westeurope, list prices, 730 h/
 | 10 | Load balancer | Public entry point; forwards ports 80/443 to the Envoy gateway, and handles outbound traffic of the nodes | Standard Load Balancer `kubernetes` | Auto (from `Service type=LoadBalancer` and AKS outbound) | 16.35 | | | `LB-S` – Auto (Kapsule cloud controller) – 16.79 € |
 | 11 | Public IP – inbound | The address the DNS A records point to | Public IP (gateway) | Auto | 3.29 | | | LB IP – Auto – 3.65 € |
 | 12 | Public IP – outbound | Source address for traffic from the nodes (image pulls, Let's Encrypt) | Public IP (AKS outbound) | Auto | 3.29 | | | **Different:** each node has its own public IPv4 (inbound closed by the security group), no shared outbound IP; private-only nodes would need a Public Gateway – 7.30 € |
-| 13 | Managed PostgreSQL | Database for the app and Keycloak; backups and patches by the provider; private access only | PostgreSQL Flexible Server 17, Burstable B1ms, 32 GB | Terraform | 17.01 | | | Managed Database `DB-PLAY2-PICO`, PostgreSQL 17, 10 GB, **Private Network endpoint only** – 18.00 € |
+| 13 | Managed PostgreSQL | Database for the app and Keycloak; backups and patches by the provider; private access only | PostgreSQL Flexible Server 17, Burstable B1ms, 32 GB | Terraform | 17.01 | | | Managed Database `DB-PLAY2-PICO`, PostgreSQL 17, 10 GB, **Private Network endpoint only**, + 2 `rdb_privilege` (admin has no rights on separately created DBs) – 18.00 € |
 | 14 | Container registry | Private image store the cluster pulls from | Container Registry Basic | Terraform | 4.55 | | | Registry namespace (private) – < 0.10 € |
-| 15 | Pull permission | Nodes pull images without a stored password | `AcrPull` for the kubelet identity (agent pool identity: Auto) | Terraform | 0 | | | **Different:** no keyless pull – read-only IAM application, key in Secret Manager, `imagePullSecret` created by `providers/scaleway.sh` – 0 € |
+| 15 | Pull permission | Nodes pull images without a stored password | `AcrPull` for the kubelet identity (agent pool identity: Auto) | Terraform | 0 | | | **Different:** no keyless pull – read-only IAM application (created with the CLI, outside Terraform), key in Secret Manager, `imagePullSecret` created by `providers/scaleway.sh` – 0 € |
 | 16 | Secret store | Holds the DB password outside Git and outside the pipeline | Key Vault (RBAC) + secret `db-password` | Terraform | ~0 | | | Secret Manager, secrets `db-password` and `registry-pull-key` – < 0.10 € |
-| 17 | CI identity | Lets the pipeline push images without a stored credential (OIDC federation), allowed to push and nothing else | User-assigned managed identity + federated credential + `AcrPush` | Terraform | 0 | | | **Missing (keyless):** no OIDC federation – IAM application with `ContainerRegistryFullAccess` on the project, API key as GitHub secret – 0 € |
+| 17 | CI identity | Lets the pipeline push images without a stored credential (OIDC federation), allowed to push and nothing else | User-assigned managed identity + federated credential + `AcrPush` | Terraform | 0 | | | **Missing (keyless):** no OIDC federation – IAM application with `ContainerRegistryFullAccess` on the project (push **and** delete; no push-only set), API key with 7-day expiry as GitHub secret – 0 € |
 | 18 | Network permission for the cluster | The cluster may create load balancers in our own subnet | `Network Contributor` on subnet `aks` | Terraform | 0 | | | – not needed |
 | – | Network diagnostics | Not needed by us. Azure creates it automatically with the first VNet in a region | Network Watcher (`NetworkWatcherRG`) | Auto (Azure) | 0 | | | – (no equivalent auto-created resource) |
 | | **Total** | | | | **≈ 118** | | | **≈ 90** |

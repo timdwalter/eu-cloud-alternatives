@@ -3,7 +3,7 @@
 Same criteria and scale as [evaluation-azure.md](evaluation-azure.md). Evidence:
 [test log](test-log-scaleway.md). Building blocks per resource: [building-blocks.md](building-blocks.md).
 
-> Status: **deployment test passed** (nl-ams). Scores and actual cost follow.
+> Status: **tested and torn down** (nl-ams). Only the actual cost is still to be added.
 
 ## Differences to the Azure reference
 
@@ -117,7 +117,7 @@ agent 6.
 ## Scores
 
 Scale **1–5**, same as Azure (5 = worked as expected, no detours · 3 = worked with noticeable detours ·
-1 = blocked or missing). **Preliminary:** teardown, production readiness and actual cost follow.
+1 = blocked or missing). The actual cost follows; it changes a score only if it differs from the estimate.
 
 | Criterion | Score | Reasoning |
 |---|---|---|
@@ -132,12 +132,12 @@ Scale **1–5**, same as Azure (5 = worked as expected, no detours · 3 = worked
 | Error messages & diagnosability | **1** | The decisive message (`quota 0/0`) named the wrong cause and cost a day; only support could explain it. Others were clear. |
 | Documentation | **3** | Clear how-tos, Scaleway's own CI tutorial matched our setup. Minus: quota docs point to validation, not capacity; website not machine-readable. |
 | Cost transparency | **4** | Public price catalog API without login, cheapest so far. Actual cost still to be compared. |
-| Teardown | – | Follows. |
+| Teardown | **4** | `destroy` in 85 s, nothing billable left. Minus: 4 helper objects outside Terraform need manual CLI deletion. |
 | Portability of the in-cluster layer | **4** | One LB annotation, the DB TLS mode (app + chart) and a pre-deploy hook for the pull secret. Keycloak, Gateway and cert-manager unchanged. |
-| Production readiness offered | – | Follows (checklist section). |
+| Production readiness offered | **3** | Multi-AZ, HA DB (upgradeable later), autoscaling and cross-region DB backups exist. Missing: registry image scanning, a managed identity service; Kubernetes audit logs and an SLA only with the paid dedicated control plane; no SecNumCloud/C5 yet ([checklist](production-readiness-checklist.md#scaleway)). |
 | Data sovereignty | – | Not scored here (same as Azure). |
 
-**Preliminary average (12 scored criteria): 3.1 / 5** (sum 37) · Azure: 3.9.
+**Average (14 scored criteria): 3.1 / 5** (sum 44) · Azure: 3.9.
 
 ## Time
 
@@ -148,7 +148,7 @@ Scale **1–5**, same as Azure (5 = worked as expected, no detours · 3 = worked
 | Whole stack from the finished code (nl-ams) | 3 min 41 s apply + ~2 min deploy + DNS |
 | Re-deploy (idempotent) | 76 s |
 
-## Verdict (preliminary)
+## Verdict
 
 Once the cluster existed, Scaleway was **simpler, faster and cheaper** than Azure, and the same code outside
 the provider module worked with small, explainable changes. The weak points are **getting started** (a

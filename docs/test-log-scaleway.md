@@ -229,3 +229,17 @@ endpoint instead of hard-coded `fr-par` (script + workflow). `terraform apply`: 
   missing default project).
 - **Time (user's estimate):** ~4 h active work, ~8 h waiting for support. Support answers only appear in
   the console; the e-mail only says that a new message exists, so the answer was noticed late.
+
+## Step 8 – Teardown (2026-11-27, ~01:25)
+
+- `teardown.sh scaleway`: Helm releases removed, LB released by Kapsule, namespaces deleted.
+- `terraform destroy`: **13 of 13** resources in **85 s** (pool 1 min 16 s, DB 31 s).
+- Outside Terraform, by CLI/gh: pull-key secrets in fr-par and nl-ams, IAM applications `textlib-ci`,
+  `textlib-registry-pull`, `textlib-terraform` (incl. keys) and their policies, GitHub secret
+  `SCW_SECRET_KEY`, repository variables `REGISTRY`, `AZURE_CLIENT_ID`, `AZURE_TENANT_ID`; local CLI profile
+  and kubeconfig entries.
+- **Check:** 0 clusters, databases, registries, secrets, private networks, servers, volumes, LBs and IPs in
+  fr-par, nl-ams, pl-waw; 0 IAM applications. Only the free `default` VPCs remain.
+- Four of the leftovers (3 IAM applications, 1 secret) were not removed by `terraform destroy`, because
+  they had to be created outside Terraform (IAM is organisation-scoped). On Azure, `destroy` removed
+  everything.
