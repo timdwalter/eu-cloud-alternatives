@@ -246,3 +246,18 @@ endpoint instead of hard-coded `fr-par` (script + workflow). `terraform apply`: 
 - **Login page (user's note):** the login distinguishes between **Scaleway** (cloud console) and
   **Dedibox** (dedicated servers, a separate older product line with its own console). Not a problem once
   known, but a first-time user has to know which one is meant – similar to IONOS with its two portals.
+
+## Summary
+
+- **Result:** all acceptance checks passed (US1–US4) in `nl-ams`, idempotent re-deploy, pipeline green,
+  torn down with nothing billable left.
+- **Changed outside the provider module:** DB TLS mode in app + chart (`DB_SSL=require`), `deploy.sh` hook,
+  root Terraform files, workflow login step, README section.
+- **Gaps vs. Azure:** no OIDC for CI (no push-only permission), no keyless pull, DB certificate not
+  verifiable without extra work, helper identities outside Terraform, public IPs on the nodes.
+- **Surprises:** a capacity shortage in `fr-par` reported as `quota exceeded 0/0` (a day lost, support
+  answer only in the console), admin user without rights on separately created databases, quotas page
+  without Kubernetes, console region per page, Scaleway/Dedibox choice at login.
+- **Agent mistakes:** 6 (see the evaluation, issues 14–19).
+- **Time:** ~4 h active + ~8 h waiting for support (user's estimate). Apply < 4 min, deploy ~2 min.
+- **Cost:** compared based on list prices: ≈ 90 €/month (≈ 2.95 €/day).

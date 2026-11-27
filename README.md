@@ -146,6 +146,65 @@ What is left and free of charge: the automatically created `NetworkWatcherRG`, a
 Vault if a run failed. Azure purges it after 7 days. The DNS records at your registrar point nowhere
 until the next deployment.
 
+## Deploy to Scaleway (branch `004-scaleway`)
+
+Same scripts and chart as on Azure, with the provider argument `scaleway`. Details and findings:
+[test log](docs/test-log-scaleway.md), [evaluation](docs/evaluation-scaleway.md).
+
+### Prerequisites
+
+- Tools as above, plus the **Scaleway CLI** (`winget install Scaleway.cli` – the binary is called
+  `scaleway-cli` on Windows, `scw` elsewhere; the provider script accepts both). No Azure CLI needed.
+- A Scaleway account and a project. Log in once with your own key (`scw init`).
+- **Identities, created once with the CLI** (IAM is organisation-scoped, so Terraform stays project-scoped
+  and does not create them):
+  - IAM application `textlib-terraform` with a policy on the project only + API key → CLI profile
+    `textlib-terraform` (used by Terraform and the scripts via `SCW_PROFILE`)
+  - IAM application `textlib-registry-pull` with `ContainerRegistryReadOnly` + API key → stored in Secret
+    Manager as `registry-pull-key` (in the region you deploy to)
+  - IAM application `textlib-ci` with `ContainerRegistryFullAccess` + API key with a **short expiry**
+    → GitHub secret `SCW_SECRET_KEY`
+- **Capacity:** new Kapsule clusters may be blocked in a region by a capacity shortage, reported as
+  `quota exceeded … 0/0`. If that happens, use another region (the test moved from `fr-par` to `nl-ams`)
+  or ask support.
+
+### Cost
+
+Roughly **90 €/month ≈ 2.95 €/day** with list prices: 2 × PLAY2-NANO, LB-S, DB-PLAY2-PICO, IPs, disks.
+Kapsule control plane (mutualized) free. **Set a billing alert before the first apply.**
+
+### Steps
+
+```bash
+export SCW_PROFILE=textlib-terraform
+# terraform.tfvars: project_id, and region/zone if not fr-par (e.g. nl-ams / nl-ams-1)
+cp infrastructure/terraform/terraform.tfvars.example infrastructure/terraform/terraform.tfvars
+terraform -chdir=infrastructure/terraform init
+terraform -chdir=infrastructure/terraform apply          # ~4 min
+
+infrastructure/scripts/push-images.sh scaleway
+infrastructure/scripts/deploy.sh scaleway                # pull secret + chart; prints the LB IP
+```
+
+DNS and TLS as for Azure. What is different from Azure:
+- **DB TLS:** Scaleway's per-instance CA is not trusted by Node, so this branch sets `DB_SSL=require`
+  (encrypted, not verified) in `values/scaleway.yaml`.
+- **No keyless pull:** `deploy.sh` creates the pull secret `scw-registry` from `registry-pull-key`.
+- **Pipeline:** API key as GitHub secret `SCW_SECRET_KEY`, variable `REGISTRY` from
+  `terraform output ci_variables`.
+
+### Tear down
+
+```bash
+infrastructure/scripts/teardown.sh scaleway
+terraform -chdir=infrastructure/terraform destroy
+```
+
+Then delete what Terraform did not create: the three IAM applications (incl. keys and policies), the
+Secret Manager entry `registry-pull-key`, the GitHub secret `SCW_SECRET_KEY` and the variable `REGISTRY`.
+Check with `scw k8s cluster list`, `scw rdb instance list`, `scw registry namespace list`,
+`scw iam application list` (per region).
+
 ## Adding a provider
 
 On a branch created from `main`:
