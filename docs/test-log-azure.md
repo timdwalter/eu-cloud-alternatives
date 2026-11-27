@@ -308,5 +308,10 @@ counted).
 **Manual steps that remain:** budget alert, DNS records, one-time `gh`/`az` logins, provider
 registration, setting three repository variables.
 
-**Cost:** estimate ≈ 118 €/month ≈ 3.90 €/day. Actual cost for the test period: _to be filled in
-after teardown (Cost Management, billing delay)._
+**Cost:** comparison **based on list prices**: ≈ 118 €/month ≈ 3.90 €/day. Actual billing is not
+recorded on purpose: billing data arrives with a delay of one to several days, and the test periods
+were not exact 24-hour blocks, so the figures would not be comparable between providers.
+
+**Teardown (2026-11-27):** `teardown.sh azure` + `terraform destroy` from `main` with the parked state:
+22 of 22 resources in 6.5 min (AKS 5 min 39 s). No resource group left; the soft-deleted Key Vault is
+purged automatically after its retention period (free).
