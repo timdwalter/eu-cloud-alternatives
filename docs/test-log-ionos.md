@@ -160,3 +160,4 @@ workflow login step.
 - Manual run on `003-ionos`: **success at the first attempt**, both images pushed (tag `afb3ea8`).
   **US4 passed.** Like Scaleway: no OIDC, a stored credential – but scoped to the registry, push without
   delete, and with a built-in expiry date (better than Scaleway's `ContainerRegistryFullAccess`).
+- **Time (user's estimate):** ~2 h active work, plus the up-to-24-hour contract review.
