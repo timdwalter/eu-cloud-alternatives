@@ -1,17 +1,19 @@
 # Copy to infrastructure/terraform/terraform.tfvars (gitignored) and fill in.
+# Credentials: OVH_CLIENT_ID / OVH_CLIENT_SECRET of the service account textlib-terraform (never in Git).
 
-# az account show --query id -o tsv
-subscription_id = "00000000-0000-0000-0000-000000000000"
+# ovhcloud cloud project list
+project_id = "0123456789abcdef0123456789abcdef"
 
-# GitHub repository whose main branch may push images (owner/name)
-github_repository = "your-github-user/your-repo"
+# Secret Manager created once in the console (ovhcloud okms list)
+okms_id = "00000000-0000-0000-0000-000000000000"
 
-# Newer repositories send an ID-based subject claim; copy it from the azure/login error message:
-# github_oidc_subject = "repo:your-github-user@12345678/your-repo@987654321:ref:refs/heads/main"
+# The registry requires an e-mail address for its users
+registry_user_email = "you@example.com"
 
 # Optional overrides
-# prefix             = "textlib"
-# location           = "westeurope"
-# kubernetes_version = "1.36.5"
-# node_size          = "Standard_B2s"
+# region             = "DE1"
+# db_region          = "DE"
+# registry_region    = "DE"
+# kubernetes_version = "1.34"
+# node_flavor        = "d2-4"
 # node_count         = 2

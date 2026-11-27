@@ -9,6 +9,8 @@ CLAUDE.md
 config.local.*
 .env
 .env.*
+.ovh.conf
+ovh.conf
 !*.example
 
 # --- Terraform ---
@@ -21,6 +23,7 @@ crash.log
 crash.*.log
 *.tfvars
 *.tfvars.json
+*.tfvars.*
 !*.tfvars.example
 override.tf
 override.tf.json
